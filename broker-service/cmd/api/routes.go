@@ -26,5 +26,8 @@ func (app *Config) routes() http.Handler {
 
 	mux.Post("/", app.Broker)
 
+	//broker微服务监听前端请求，之后像认证微服务发出请求，认证微服务接收请求并返回数据
+	mux.Post("/handle", app.HandleSubmission)
+
 	return mux
 }
