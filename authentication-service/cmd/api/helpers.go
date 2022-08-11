@@ -13,7 +13,7 @@ type jsonResponse struct {
 	Data    any    `json:"data,omitempty"`
 }
 
-// readJSON tries to read the body of a request and converts it into JSON
+// readJSON 尝试读取请求的正文并将其转换为JSON
 func (app *Config) readJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	maxBytes := 1048576 // one megabyte
 
@@ -33,7 +33,7 @@ func (app *Config) readJSON(w http.ResponseWriter, r *http.Request, data any) er
 	return nil
 }
 
-// writeJSON takes a response status code and arbitrary data and writes a json response to the client
+// writeJSON 获取响应状态代码和任意数据，并将json响应写入客户端
 func (app *Config) writeJSON(w http.ResponseWriter, status int, data any, headers ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {
@@ -56,7 +56,7 @@ func (app *Config) writeJSON(w http.ResponseWriter, status int, data any, header
 	return nil
 }
 
-// errorJSON takes an error, and optionally a response status code, and generates and sends
+// errorJSON 获取错误和响应状态代码(可选)，生成并发送
 // a json error response
 func (app *Config) errorJSON(w http.ResponseWriter, err error, status ...int) error {
 	statusCode := http.StatusBadRequest

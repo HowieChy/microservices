@@ -11,12 +11,19 @@ import (
 type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
+	Log    LogPayload  `json:"log,omitempty"`
 }
 
 // AuthPayLoad是描述身份验证请求的嵌入式类型(在RequestPayLoad中）
 type AuthPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// LogPayload是描述日志的嵌入式类型(in RequestPayload)
+type LogPayload struct {
+	Name string `json:"name"`
+	Data string `json:"data"`
 }
 
 // Broker代理是一个测试处理程序，确保我们可以从web客户端访问代理
@@ -29,6 +36,7 @@ func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 
 }
 
+//处理接口
 func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	var requestPayload RequestPayload
 
@@ -38,9 +46,12 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//处理前端请求头的Action
 	switch requestPayload.Action {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
+	case "log":
+		app.logItem(w, requestPayload.Log)
 	default:
 		app.errorJSON(w, errors.New("unknown action"))
 	}
@@ -48,17 +59,17 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 
 //在broker中调用authentication微服务并发送回相应的响应
 func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
-	//创建json，我们将发送给auth微服务
+	//格式化json，我们将发送给auth微服务
 	jsonData, _ := json.MarshalIndent(a, "", "\t")
 
-	// call the service
+	// 创建一个请求服务  url是因为docker-compose.yml里配置的？！
 	request, err := http.NewRequest("POST", "http://authentication-service/authenticate", bytes.NewBuffer(jsonData))
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
-	//调用Http服务
+	//创建一个http客户端，调用上面的请求服务
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
@@ -76,7 +87,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 		return
 	}
 
-	//创建我们将读取响应的变量.Body into
+	//创建我们将读取响应的变量
 	var jsonFromService jsonResponse
 
 	// 从auth服务解码json
@@ -97,4 +108,40 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	payload.Data = jsonFromService.Data
 
 	app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+// LogItem通过向logger-service微服务发出带有JSON的HTTP Post请求来记录项目
+func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
+	jsonData, _ := json.MarshalIndent(entry, "", "\t")
+
+	logServiceURL := "http://logger-service/log"
+
+	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+
+	response, err := client.Do(request)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "logged"
+
+	app.writeJSON(w, http.StatusAccepted, payload)
+
 }

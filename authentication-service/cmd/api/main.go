@@ -26,7 +26,7 @@ type Config struct {
 func main() {
 	log.Println("Starting authentication service")
 
-	// connect to DB
+	// 连接到数据库
 	conn := connectToDB()
 	if conn == nil {
 		log.Panic("Can't connect to Postgres!")
@@ -49,6 +49,7 @@ func main() {
 	}
 }
 
+//打开数据库
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -63,6 +64,7 @@ func openDB(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
+//连接数据库
 func connectToDB() *sql.DB {
 	dsn := os.Getenv("DSN")
 
