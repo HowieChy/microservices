@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"log-service/data"
+	"net"
 	"net/http"
+	"net/rpc"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,6 +53,10 @@ func main() {
 		Models: data.New(client),
 	}
 
+	//注册RPC
+	err = rpc.Register(new(RPCServer))
+	go app.rpcListen()
+
 	// 启动服务
 	log.Println("Starting service on port", webPort)
 	srv := &http.Server{
@@ -63,6 +69,24 @@ func main() {
 		log.Panic()
 	}
 
+}
+
+func (app *Config) rpcListen() error {
+	log.Println("Starting RPC server on Port", rpcPort)
+	listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", rpcPort))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer listen.Close()
+
+	for {
+		rpcConn, err := listen.Accept()
+		if err != nil {
+			continue
+		}
+		go rpc.ServeConn(rpcConn)
+	}
 }
 
 //连接数据库的函数
