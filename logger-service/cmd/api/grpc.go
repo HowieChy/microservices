@@ -25,6 +25,7 @@ func (l *LogServer) WriteLog(ctx context.Context, req *logs.LogRequest) (*logs.L
 		Data: input.Data,
 	}
 
+	//写入数据到mongodb
 	err := l.Models.LogEntry.Insert(logEntry)
 	if err != nil {
 		res := &logs.LogResponse{Result: "failed"}

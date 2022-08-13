@@ -276,6 +276,7 @@ func (app *Config) logItemViaRPC(w http.ResponseWriter, l LogPayload) {
 	app.writeJSON(w, http.StatusAccepted, payload)
 }
 
+//处理gRPC
 func (app *Config) LogViaGRPC(w http.ResponseWriter, r *http.Request) {
 	var requestPayload RequestPayload
 
@@ -296,6 +297,7 @@ func (app *Config) LogViaGRPC(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	//调用gRpc定义的WriteLog
 	_, err = c.WriteLog(ctx, &logs.LogRequest{
 		LogEntry: &logs.Log{
 			Name: requestPayload.Log.Name,
