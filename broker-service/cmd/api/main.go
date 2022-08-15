@@ -12,7 +12,7 @@ import (
 )
 
 //端口
-const webPort = "80"
+const webPort = "8080"
 
 type Config struct {
 	Rabbit *amqp.Connection
