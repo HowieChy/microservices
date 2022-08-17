@@ -14,7 +14,7 @@ services:
       - caddy_config:/config
 
   front-end:
-    image: tsawler/front-end:1.0.1
+    image: howier/front-end:1.0.3
     deploy:
       mode: replicated
       replicas: 1
@@ -88,7 +88,7 @@ services:
       - ./db-data/mongo/:/data/db
 
   postgres:
-    image: "postgres:14.0"
+    image: "postgres:14.2"
     ports:
       - "5432:5432"
     deploy:
